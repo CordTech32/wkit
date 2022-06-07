@@ -13,11 +13,11 @@ from werkzeug.utils import secure_filename
 to_reload = False
 
 def get_app():
-    app = Flask("WebsiteKit", template_folder="wk-include")
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.db"
-    app.config["SECRET_KEY"] = "msnfioa"
+    app = Flask("WebsiteKit", template_folder="wk-include", static_url_path="/wk-static")
+    app.config["SQLALCHEMY_DATABASE_URI"] = config["WkitConf"]["sqlalchemy_database_uri"]
+    app.config["SECRET_KEY"] = config["WkitConf"]["secret_key"]
 
-    @app.route('/reload')
+    @app.route('/wk-admin/reload')
     @login_required
     def reload():
         global to_reload
@@ -106,7 +106,8 @@ def get_app():
     def routes():
         rules = []
         for rule in app.url_map.iter_rules():
-            rules.append(rule)
+            if not rule.rule.startswith("/wk-"):
+                rules.append(rule)
         return render_template("wk-manage-routes.html", rules=rules)
 
 
@@ -123,18 +124,11 @@ def get_app():
         stylesheet_name=request.args.get("stylesheet_name","style.css")
         with open(f"wk-contents/{secure_filename(stylesheet_name)}","w") as f:
             f.write(request.form["markup"])
-        return redirect("/reload")
+        return redirect("/wk-admin/reload")
 
     @app.route("/wk-admin/edit/response")
     @login_required
     def edit_response():
-        return render_template("wk-edit-rule.html", rule=request.args.get("u"))
-
-
-    @app.route("/wk-admin/restart")
-    @login_required
-    def exit_s():
-        exit(-4)
         return render_template("wk-edit-rule.html", rule=request.args.get("u"))
 
     @app.route("/wk-admin/edit/response", methods=["POST"])
@@ -142,7 +136,7 @@ def get_app():
     def edit_response_P():
         HTML.query.filter_by(rule=request.args.get("u")).update({'html':request.form['markup'], 'render_type':request.form['render-type']})
         db.session.commit()
-        return redirect("/reload")
+        return redirect("/wk-admin/reload")
 
         return render_template("wk-edit-rule.html", rule=request.args.get("u"))
 
@@ -158,7 +152,7 @@ def get_app():
         ht = HTML(rule=request.form["rule"], html=request.form["markup"], render_type=request.form['render-type'])
         db.session.add(ht)
         db.session.commit()
-        return redirect("/reload")
+        return redirect("/wk-admin/reload")
         return redirect("/wk-admin/edit/add-route")
 
 
@@ -191,11 +185,11 @@ class AppReloader(object):
     def __call__(self, environ, start_response):
         app = self.get_application()
         return app(environ, start_response)
+config = load(open(".wkaccess"))
 
 application = AppReloader(get_app)
 
-config = load(open(".wkaccess"))
 
 if __name__ == "__main__":
-    run_simple('localhost', 4000, application,
+    run_simple(config["WkitConf"]["ws_host"], config["WkitConf"]["ws_port"], application,
                use_reloader=True, use_debugger=True, use_evalex=True)
