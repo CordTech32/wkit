@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebsiteKit Backend</title>
+    <style>
+         /* The sidebar menu */
+.sidenav {
+  height: 100%; /* Full-height: remove this if you want "auto" height */
+  width: 160px; /* Set the width of the sidebar */
+  position: fixed; /* Fixed Sidebar (stay in place on scroll) */
+  z-index: 1; /* Stay on top */
+  top: 0; /* Stay at the top */
+  left: 0;
+  background-color: #111; /* Black */
+  overflow-x: hidden; /* Disable horizontal scroll */
+  padding-top: 20px;
+}
+
+/* The navigation menu links */
+.sidenav a {
+  padding: 6px 8px 6px 16px;
+  text-decoration: none;
+  font-size: 25px;
+  color: #818181;
+  display: block;
+}
+
+/* When you mouse over the navigation links, change their color */
+.sidenav a:hover {
+  color: #f1f1f1;
+}
+
+/* Style page content */
+.main *{
+  margin-left: 160px; /* Same as the width of the sidebar */
+  padding: 0px 10px;
+}
+
+/* On smaller screens, where height is less than 450px, change the style of the sidebar (less padding and a smaller font size) */
+@media screen and (max-height: 450px) {
+  .sidenav {padding-top: 15px;}
+  .sidenav a {font-size: 18px;}
+} 
+
+.main *{
+  margin: 0px;
+  padding: 0px;
+  box-sizing: border-box;
+}
+
+body .main{
+  height: 100vh;
+  display: flex;
+  padding-left: 30vh;
+}
+
+.code-area{
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+  border-right: 1px solid #555;
+}
+
+.code-area textarea{
+  resize: none;
+  outline: none;
+  width: 100%;
+  height: 33.33%;
+  font-size: 18px;
+  padding: 10px;
+}
+
+.preview-area{
+  width: 50%;
+}
+
+.preview-area iframe{
+  width: 100%;
+  height: 100%;
+}
+
+    </style>
+</head>
+<body>
+    <div class="sidenav">
+        <a href="/wk-admin/routes">Manage Routes</a>
+        <a href="/wk-admin/tools">Plugins</a>
+        <a href="/wk-admin/edit/styles">CSS Editor</a>
+        <a href="/wk-logout">Log out</a>
+      </div>
+      
+      <!-- Page content -->
+      <div class="main">
+        <form action="/wk-admin/edit/styles?stylesheet_name={{stylesheet_name}}" method="post">
+          
+          <div class="code-area">
+
+          <textarea name="markup" id="htmlCode" placeholder="Enter Code here" oninput="showPrev()"></textarea>
+
+          <button type="submit">"Update"</button>
+        </div>
+        </form>
+        <div class="preview-area">
+          <iframe id="preview-window"></iframe>
+        </div>
+      </div>
+</body>
+
+<script>
+  function showPrev(){
+    let htmlCode = document.getElementById("htmlCode").value;
+    let frame = document.getElementById("preview-window").contentWindow.document;
+    frame.open();
+    frame.write(`<style>${htmlCode}</style>{{sample_text}}`)
+    frame.close();
+
+  }
+</script>
+</html>
