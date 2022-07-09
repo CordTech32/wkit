@@ -115,7 +115,11 @@ def get_app():
     @login_required
     def edit_css():
         samole = Markup(requests.get("https://www.w3schools.com/howto/tryhow_css_example_website.htm").text)
-        return render_template("wk-edit-styles.html", stylesheet_name=request.args.get("stylesheet_name","style.css"), sample_text=samole)
+        th = []
+        for x in os.listdir("wk-themes"):
+            if x.endswith(".theme"):
+                th.append("wk-themes/"+x+"/style.css")
+        return render_template("wk-edit-styles.html", themes=th, stylesheet_name=request.args.get("stylesheet_name","style.css"), sample_text=samole)
 
 
     @app.route("/wk-admin/edit/styles", methods=["POST"])
