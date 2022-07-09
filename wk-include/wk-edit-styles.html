@@ -95,11 +95,18 @@ body .main{
       <!-- Page content -->
       <div class="main">
         <form action="/wk-admin/edit/styles?stylesheet_name={{stylesheet_name}}" method="post">
-          
+  	          
           <div class="code-area">
 
           <textarea name="markup" id="htmlCode" placeholder="Enter Code here" oninput="showPrev()"></textarea>
-
+	  <br>
+	  <p>Or Select Theme...</p>
+	  <select name="theme">
+	  	<option value="null" selected>None</option>
+		{% for theme in themes %}
+		<option value="{{theme}}">{{theme.split("/")[1].replace(".theme","")}}</option>
+		{%endfor%}
+	  </select>
           <button type="submit">"Update"</button>
         </div>
         </form>
