@@ -1,6 +1,6 @@
 from flask import Flask, redirect, render_template, request
 import requests
-
+import os
 from toml import load
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_required, current_user, login_user, UserMixin, logout_user
@@ -9,14 +9,30 @@ from markupsafe import Markup
 import difflib
 from werkzeug.serving import run_simple
 from werkzeug.utils import secure_filename
+import sys
+import importlib
+
+sys.path.append("wk-contents")
+
+pl = importlib.import_module("pluginloader")
+
+def get_hashed_password(plain_text_password):
+        # Hash a password for the first time
+        #   (Using bcrypt, the salt is saved into the hash itself)
+        return bcrypt.hashpw(plain_text_password, bcrypt.gensalt())
+
+def check_password(plain_text_password, hashed_password):
+        # Check hashed password. Using bcrypt, the salt is saved into the hash itself
+        return bcrypt.checkpw(plain_text_password, hashed_password)
+
+
 
 to_reload = False
-
 def get_app():
     app = Flask("WebsiteKit", template_folder="wk-include", static_url_path="/wk-static")
     app.config["SQLALCHEMY_DATABASE_URI"] = config["WkitConf"]["sqlalchemy_database_uri"]
     app.config["SECRET_KEY"] = config["WkitConf"]["secret_key"]
-
+    
     @app.route('/wk-admin/reload')
     @login_required
     def reload():
@@ -35,7 +51,7 @@ def get_app():
 
     db = SQLAlchemy(app)
     login_mgr = LoginManager(app)
-
+    app.login_required = login_required
     class HTML(db.Model):
         id = db.Column(db.Integer, primary_key = True, autoincrement = True)
         rule = db.Column(db.String(50), unique = True, default="/")
@@ -126,8 +142,11 @@ def get_app():
     @login_required
     def edit_css_P():
         stylesheet_name=request.args.get("stylesheet_name","style.css")
+        markup = request.form["markup"]
+        if request.form["theme"] != "null":
+            markup = open(request.form["theme"]).read()
         with open(f"wk-contents/{secure_filename(stylesheet_name)}","w") as f:
-            f.write(request.form["markup"])
+            f.write(markup)
         return redirect("/wk-admin/reload")
 
     @app.route("/wk-admin/edit/response")
@@ -170,6 +189,10 @@ def get_app():
     @app.route("/wk-admin/<e>")
     def notfound(e):
         return '<script>history.back()</script>'
+    
+    app.db = db
+    for l in os.listdir("wk-contents/uploads"):
+        pl.load_pl(app, l)
 
     return app
 
@@ -191,9 +214,9 @@ class AppReloader(object):
         return app(environ, start_response)
 config = load(open(".wkaccess"))
 
-application = AppReloader(get_app)
 
 
 if __name__ == "__main__":
+    application = AppReloader(get_app)
     run_simple(config["WkitConf"]["ws_host"], config["WkitConf"]["ws_port"], application,
                use_reloader=True, use_debugger=True, use_evalex=True)
