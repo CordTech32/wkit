@@ -9,6 +9,12 @@ from markupsafe import Markup
 import difflib
 from werkzeug.serving import run_simple
 from werkzeug.utils import secure_filename
+import sys
+import importlib
+
+sys.path.append("wk-contents")
+
+pl = importlib.import_module("pluginloader")
 
 def get_hashed_password(plain_text_password):
         # Hash a password for the first time
@@ -19,12 +25,14 @@ def check_password(plain_text_password, hashed_password):
         # Check hashed password. Using bcrypt, the salt is saved into the hash itself
         return bcrypt.checkpw(plain_text_password, hashed_password)
 
+
+
 to_reload = False
 def get_app():
     app = Flask("WebsiteKit", template_folder="wk-include", static_url_path="/wk-static")
     app.config["SQLALCHEMY_DATABASE_URI"] = config["WkitConf"]["sqlalchemy_database_uri"]
     app.config["SECRET_KEY"] = config["WkitConf"]["secret_key"]
-
+    
     @app.route('/wk-admin/reload')
     @login_required
     def reload():
@@ -43,7 +51,7 @@ def get_app():
 
     db = SQLAlchemy(app)
     login_mgr = LoginManager(app)
-
+    app.login_required = login_required
     class HTML(db.Model):
         id = db.Column(db.Integer, primary_key = True, autoincrement = True)
         rule = db.Column(db.String(50), unique = True, default="/")
@@ -181,6 +189,10 @@ def get_app():
     @app.route("/wk-admin/<e>")
     def notfound(e):
         return '<script>history.back()</script>'
+    
+    app.db = db
+    for l in os.listdir("wk-contents/uploads"):
+        pl.load_pl(app, l)
 
     return app
 
