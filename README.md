@@ -12,7 +12,7 @@ sets up WKit and readies it for deployment.
 The Backend is WKit's Core. It provides a Graphical User Interface that allows:
 
 * Managing the Routes  
-* Managing Plugins (But Plugins aren't ready yet, they will most likely be added in V2)  
+* Managing Plugins (sorta)  
 * Managing the Styles
 ### Logging in
 To Log in to the Backend, you open `http://your-website/wk-login`.  
@@ -45,6 +45,16 @@ ws_port=4000
 secret_key="bzergeu"
 sqlalchemy_database_uri="sqlite:///users.db"
 ```
+
+## Plugins, Themes
+Plugins are small Python Scripts that either get loaded when WKit reloads or  
+when enabled in the (coming soon) ui.  
+They can help you make WKit nicer to use, etc.  
+We have two Plugins preinstalled:  
+* Rickroll:  Just for testing purposes, add's `/rickroll` as a URL Route  
+* WhackHub:  A Backup tool: It backs up the entire Database, including Users!  
+
+
 
 ### Running the App
 Just run `python3 WSS.py`
