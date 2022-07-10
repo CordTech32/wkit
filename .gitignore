@@ -2,3 +2,4 @@
 /*.db
 /*.cmd
 /.wkaccess
+/**/__pycache__
